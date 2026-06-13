@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Linters and formatters
+.ruff_cache/
+.mypy_cache/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+
+# macOS
+.DS_Store
+
+# Project notes
+interview/

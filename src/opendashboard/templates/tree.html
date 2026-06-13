@@ -1,0 +1,33 @@
+{% macro render_node(node) %}
+<li class="map-node">
+    <div class="map-node-card map-node-{{ node.agent }}">
+        <span class="agent-badge agent-{{ node.agent }}">{{ node.agent }}</span>
+        <code class="map-node-id">{{ node.id[:12] }}</code>
+        <span class="map-node-title" title="{{ node.title }}">{{ node.title[:60] }}{% if node.title|length > 60 %}…{% endif %}</span>
+        {% if node.cost > 0 %}
+        <span class="map-node-cost">${{ "%.4f"|format(node.cost) }}</span>
+        {% endif %}
+        {% if node.tokens_input + node.tokens_output > 0 %}
+        <span class="map-node-tokens">{{ "{:,}".format(node.tokens_input + node.tokens_output) }} tok</span>
+        {% endif %}
+        <span class="map-node-time">{{ node.time_created | int | timestamp_to_str }}</span>
+    </div>
+    {% if node.children %}
+    <ul class="map-children">
+        {% for child in node.children %}
+        {{ render_node(child) }}
+        {% endfor %}
+    </ul>
+    {% endif %}
+</li>
+{% endmacro %}
+
+{% if tree %}
+<ul class="map-tree">
+    {% for root in tree %}
+    {{ render_node(root) }}
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty-state">No delegation chain found for this session.</p>
+{% endif %}

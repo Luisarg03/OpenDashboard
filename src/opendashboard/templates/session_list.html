@@ -1,0 +1,55 @@
+{% set filter_url = "/project/" ~ project_id if project_id else "/" %}
+
+<div class="filters-bar">
+    <input type="search" name="search" placeholder="Search titles..." 
+           value="{{ search }}"
+           hx-get="{{ filter_url }}" 
+           hx-target="#session-list-container" 
+           hx-trigger="keyup changed delay:300ms" 
+           hx-include="[name='agent']"
+           hx-indicator="#spinner">
+    
+    <select name="agent" 
+            hx-get="{{ filter_url }}" 
+            hx-target="#session-list-container" 
+            hx-trigger="change"
+            hx-include="[name='search']"
+            hx-indicator="#spinner">
+        <option value="">All agents</option>
+        {% for a in agents %}
+        <option value="{{ a }}" {% if agent == a %}selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+    </select>
+    
+    <span id="spinner" class="htmx-indicator spinner"></span>
+</div>
+
+<div id="session-list-container">
+    <table class="session-table">
+        <thead>
+            <tr>
+                <th>Agent</th>
+                <th>Title</th>
+                <th>Created</th>
+                <th>Cost</th>
+                <th>Tokens</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sessions %}
+             <tr class="session-row"
+                hx-get="/session/{{ s.id }}/map"
+                hx-target="#map-panel"
+                hx-indicator="#map-spinner">
+                <td><span class="agent-badge agent-{{ s.agent }}">{{ s.agent }}</span></td>
+                <td class="session-title">{{ s.title[:80] }}{% if s.title|length > 80 %}...{% endif %}</td>
+                <td class="session-time">{{ s.time_created | int | timestamp_to_str }}</td>
+                <td class="session-cost">${{ "%.6f"|format(s.cost) }}</td>
+                <td class="session-tokens">{{ s.tokens_input + s.tokens_output }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No sessions found</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

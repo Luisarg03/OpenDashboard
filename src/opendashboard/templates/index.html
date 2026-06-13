@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}OpenDashboard - Sessions{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <aside class="sidebar">
+        <div class="stats-cards">
+            <div class="stat-card">
+                <span class="stat-value">{{ stats.total_sessions }}</span>
+                <span class="stat-label">Sessions</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">${{ "%.2f"|format(stats.total_cost) }}</span>
+                <span class="stat-label">Total Cost</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">{{ "{:,}".format(stats.total_tokens) }}</span>
+                <span class="stat-label">Tokens</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">{{ stats.unique_agents }}</span>
+                <span class="stat-label">Agents</span>
+            </div>
+        </div>
+
+        <h2>Root Sessions</h2>
+        <ul class="root-session-list">
+            {% for rs in root_sessions %}
+            <li>
+                <a href="#"
+                   hx-get="/session/{{ rs.id }}/map"
+                    hx-target="#map-panel"
+                    hx-indicator="#map-spinner"
+                    class="root-session-item">
+                    <span class="root-session-agent agent-badge agent-{{ rs.agent }}">{{ rs.agent }}</span>
+                    <span class="root-session-title">{{ rs.title[:50] }}{% if rs.title|length > 50 %}...{% endif %}</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="sidebar-empty">No root sessions found</li>
+            {% endfor %}
+        </ul>
+
+        <details class="projects-collapsible">
+            <summary class="projects-summary">Projects ({{ projects|length }})</summary>
+            <ul class="project-list">
+                {% for p in projects %}
+                <li>
+                    <a href="#" hx-get="/project/{{ p.id }}"
+                       hx-target="#session-list"
+                       class="project-item">
+                        <span class="project-name">{{ p.name or 'Unnamed' }}</span>
+                        <span class="project-sessions">{{ p.session_count }} sessions</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </details>
+    </aside>
+
+    <section class="main-content" id="main-content-area">
+        <div id="map-panel">
+            {% if first_map %}
+            {% with session=first_map.session, tree=first_map.tree,
+                     total_cost=first_map.total_cost, total_tokens=first_map.total_tokens %}
+            {% include "_session_map.html" %}
+            {% endwith %}
+            {% else %}
+            <div id="map-placeholder" class="map-placeholder">
+                <h2>Delegation Map</h2>
+                <p>Select a root session from the sidebar to view its delegation map.</p>
+                <span id="map-spinner" class="htmx-indicator spinner"></span>
+            </div>
+            {% endif %}
+        </div>
+        <div id="session-list"></div>
+    </section>
+</div>
+{% endblock %}

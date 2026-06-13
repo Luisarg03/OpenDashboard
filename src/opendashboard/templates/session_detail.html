@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Session {{ session.id[:20] }}...{% endblock %}
+{% block content %}
+{% include "_session_detail_body.html" %}
+{% endblock %}

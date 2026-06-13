@@ -1,0 +1,33 @@
+<div class="session-detail-panel">
+    <div class="session-header">
+        <h1>Delegation Map</h1>
+        <span id="map-spinner" class="htmx-indicator spinner"></span>
+    </div>
+
+    <div class="session-meta">
+        <div class="meta-item">
+            <span class="meta-label">Session</span>
+            <code class="meta-value">{{ session.id }}</code>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Agent</span>
+            <span class="agent-badge agent-{{ session.agent }}">{{ session.agent }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Title</span>
+            <span class="meta-value">{{ session.title }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Total Cost</span>
+            <span class="meta-value">${{ "%.6f"|format(total_cost) }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Total Tokens</span>
+            <span class="meta-value">{{ "{:,}".format(total_tokens) }}</span>
+        </div>
+    </div>
+
+    <div class="tree-container">
+        {% include "tree.html" %}
+    </div>
+</div>

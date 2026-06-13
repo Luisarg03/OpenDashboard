@@ -10,6 +10,51 @@ router = APIRouter()
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
+def compute_trace_summary(nodes):
+    """Compute aggregate summary from delegation chain nodes."""
+    if not nodes:
+        return {
+            "total_tasks": 0,
+            "total_cost": 0.0,
+            "total_tokens": 0,
+            "completed_count": 0,
+            "running_count": 0,
+            "failed_count": 0,
+            "duration_minutes": 0,
+        }
+
+    total_tasks = len(nodes)
+    total_cost = sum(n.cost for n in nodes)
+    total_tokens = sum(n.tokens_input + n.tokens_output for n in nodes)
+
+    # Determine leaf nodes (ids not referenced as parent_id among these nodes)
+    parent_ids = {n.parent_id for n in nodes if n.parent_id}
+    all_ids = {n.id for n in nodes}
+    leaf_ids = all_ids - parent_ids
+
+    latest_time = max(n.time_created for n in nodes)
+    earliest_time = min(n.time_created for n in nodes)
+
+    # Running = leaf with latest time_created
+    running_count = sum(
+        1 for n in nodes if n.id in leaf_ids and n.time_created == latest_time
+    )
+    failed_count = 0
+    completed_count = total_tasks - running_count - failed_count
+
+    duration_minutes = max(0, (latest_time - earliest_time) // 60000)
+
+    return {
+        "total_tasks": total_tasks,
+        "total_cost": total_cost,
+        "total_tokens": total_tokens,
+        "completed_count": completed_count,
+        "running_count": running_count,
+        "failed_count": failed_count,
+        "duration_minutes": duration_minutes,
+    }
+
+
 @router.get("/", response_class=HTMLResponse)
 async def index(
     request: Request,
@@ -17,7 +62,6 @@ async def index(
     agent: str = "",
 ):
     try:
-        projects = db.list_projects()
         sessions = db.list_sessions(
             limit=100,
             search=search or None,
@@ -36,11 +80,16 @@ async def index(
         if root_sessions:
             first_root = root_sessions[0]
             nodes = db.get_delegation_chain(first_root.id)
+            earliest_time = min(n.time_created for n in nodes) if nodes else 0
+            latest_time = max(n.time_created for n in nodes) if nodes else 0
             first_map = {
                 "session": first_root,
                 "tree": build_tree(nodes),
                 "total_cost": sum(n.cost for n in nodes),
                 "total_tokens": sum(n.tokens_input + n.tokens_output for n in nodes),
+                "earliest_time": earliest_time,
+                "latest_time": latest_time,
+                "trace_summary": compute_trace_summary(nodes),
             }
 
         return templates.TemplateResponse(
@@ -48,7 +97,6 @@ async def index(
             "index.html",
             {
                 "request": request,
-                "projects": projects,
                 "sessions": sessions,
                 "root_sessions": root_sessions,
                 "agents": agents,
@@ -103,6 +151,9 @@ async def session_detail(request: Request, session_id: str):
     nodes = db.get_delegation_chain(session_id)
     tree = build_tree(nodes)
 
+    earliest_time = min(n.time_created for n in nodes) if nodes else 0
+    latest_time = max(n.time_created for n in nodes) if nodes else 0
+
     is_htmx = request.headers.get("hx-request") == "true"
     template = "_session_detail_body.html" if is_htmx else "session_detail.html"
 
@@ -115,6 +166,9 @@ async def session_detail(request: Request, session_id: str):
             "tree": tree,
             "total_cost": sum(n.cost for n in nodes),
             "total_tokens": sum(n.tokens_input + n.tokens_output for n in nodes),
+            "earliest_time": earliest_time,
+            "latest_time": latest_time,
+            "trace_summary": compute_trace_summary(nodes),
             "is_htmx": is_htmx,
         },
     )
@@ -124,10 +178,18 @@ async def session_detail(request: Request, session_id: str):
 async def session_tree_partial(request: Request, session_id: str):
     nodes = db.get_delegation_chain(session_id)
     tree = build_tree(nodes)
+    earliest_time = min(n.time_created for n in nodes) if nodes else 0
+    latest_time = max(n.time_created for n in nodes) if nodes else 0
     return templates.TemplateResponse(
         request,
         "tree.html",
-        {"request": request, "tree": tree},
+        {
+            "request": request,
+            "tree": tree,
+            "earliest_time": earliest_time,
+            "latest_time": latest_time,
+            "trace_summary": compute_trace_summary(nodes),
+        },
     )
 
 
@@ -141,6 +203,9 @@ async def session_map_partial(request: Request, session_id: str):
     nodes = db.get_delegation_chain(session_id)
     tree = build_tree(nodes)
 
+    earliest_time = min(n.time_created for n in nodes) if nodes else 0
+    latest_time = max(n.time_created for n in nodes) if nodes else 0
+
     return templates.TemplateResponse(
         request,
         "_session_map.html",
@@ -150,5 +215,8 @@ async def session_map_partial(request: Request, session_id: str):
             "tree": tree,
             "total_cost": sum(n.cost for n in nodes),
             "total_tokens": sum(n.tokens_input + n.tokens_output for n in nodes),
+            "earliest_time": earliest_time,
+            "latest_time": latest_time,
+            "trace_summary": compute_trace_summary(nodes),
         },
     )

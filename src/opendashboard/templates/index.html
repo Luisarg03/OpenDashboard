@@ -42,28 +42,16 @@
             {% endfor %}
         </ul>
 
-        <details class="projects-collapsible">
-            <summary class="projects-summary">Projects ({{ projects|length }})</summary>
-            <ul class="project-list">
-                {% for p in projects %}
-                <li>
-                    <a href="#" hx-get="/project/{{ p.id }}"
-                       hx-target="#session-list"
-                       class="project-item">
-                        <span class="project-name">{{ p.name or 'Unnamed' }}</span>
-                        <span class="project-sessions">{{ p.session_count }} sessions</span>
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-        </details>
+
     </aside>
 
     <section class="main-content" id="main-content-area">
         <div id="map-panel">
             {% if first_map %}
             {% with session=first_map.session, tree=first_map.tree,
-                     total_cost=first_map.total_cost, total_tokens=first_map.total_tokens %}
+                     total_cost=first_map.total_cost, total_tokens=first_map.total_tokens,
+                     earliest_time=first_map.earliest_time, latest_time=first_map.latest_time,
+                     trace_summary=first_map.trace_summary %}
             {% include "_session_map.html" %}
             {% endwith %}
             {% else %}
@@ -74,7 +62,6 @@
             </div>
             {% endif %}
         </div>
-        <div id="session-list"></div>
     </section>
 </div>
 {% endblock %}

@@ -11,10 +11,11 @@ class TestIndex:
         response = client.get("/")
         assert response.headers["content-type"].startswith("text/html")
 
-    def test_shows_projects(self, client):
+    def test_hides_projects(self, client):
+        """Projects block removed from sidebar per UX fix."""
         response = client.get("/")
-        assert "Test Project" in response.text
-        assert "Another Project" in response.text
+        assert "Test Project" not in response.text
+        assert "Another Project" not in response.text
 
     def test_shows_sessions(self, client):
         response = client.get("/")
@@ -105,7 +106,6 @@ class TestSessionMapPartial:
     def test_shows_session_info(self, client):
         response = client.get("/session/ses_001/map")
         assert "Root session" in response.text
-        assert "Delegation Map" in response.text
 
     def test_shows_tree(self, client):
         response = client.get("/session/ses_001/map")

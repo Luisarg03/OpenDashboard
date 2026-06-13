@@ -1,33 +1,61 @@
 <div class="session-detail-panel">
     <div class="session-header">
-        <h1>Delegation Map</h1>
         <span id="map-spinner" class="htmx-indicator spinner"></span>
     </div>
 
     <div class="session-meta">
-        <div class="meta-item">
+        <div class="meta-item meta-session">
             <span class="meta-label">Session</span>
             <code class="meta-value">{{ session.id }}</code>
         </div>
-        <div class="meta-item">
+        <div class="meta-item meta-agent">
             <span class="meta-label">Agent</span>
             <span class="agent-badge agent-{{ session.agent }}">{{ session.agent }}</span>
         </div>
-        <div class="meta-item">
+        <div class="meta-item meta-title">
             <span class="meta-label">Title</span>
             <span class="meta-value">{{ session.title }}</span>
         </div>
-        <div class="meta-item">
+        <div class="meta-item meta-cost">
             <span class="meta-label">Total Cost</span>
             <span class="meta-value">${{ "%.6f"|format(total_cost) }}</span>
         </div>
-        <div class="meta-item">
+        <div class="meta-item meta-tokens">
             <span class="meta-label">Total Tokens</span>
             <span class="meta-value">{{ "{:,}".format(total_tokens) }}</span>
         </div>
     </div>
 
-    <div class="tree-container">
+    <div class="trace-summary-chips">
+        <span class="trace-chip">Tasks: {{ trace_summary.total_tasks }}</span>
+        <span class="trace-chip">Cost: ${{ "%.4f"|format(trace_summary.total_cost) }}</span>
+        <span class="trace-chip">Tokens: {{ "{:,}".format(trace_summary.total_tokens) }}</span>
+        <span class="trace-chip trace-chip-completed">Completed: {{ trace_summary.completed_count }}</span>
+        <span class="trace-chip trace-chip-running">Running: {{ trace_summary.running_count }}</span>
+        <span class="trace-chip trace-chip-failed">Failed: {{ trace_summary.failed_count }}</span>
+        <span class="trace-chip">Duration: {{ trace_summary.duration_minutes }}m</span>
+    </div>
+
+    <div class="trace-timeline-bar">
+        <div class="trace-timeline-bar-row">
+            <span class="trace-timeline-label">Start</span>
+            <span class="trace-timeline-time">{{ earliest_time | int | timestamp_to_str }}</span>
+            <div class="trace-timeline-control">
+                <div class="trace-timeline-track">
+                    <span class="trace-timeline-fill" style="width: 100%"></span>
+                </div>
+                <input type="range" class="trace-timeline-range"
+                       min="{{ earliest_time }}" max="{{ latest_time }}"
+                       value="{{ latest_time }}" step="1"
+                       data-earliest="{{ earliest_time }}" data-latest="{{ latest_time }}">
+            </div>
+            <span class="trace-timeline-label">Latest</span>
+            <span class="trace-timeline-time">{{ latest_time | int | timestamp_to_str }}</span>
+            <span class="trace-timeline-current">+0m</span>
+        </div>
+    </div>
+
+    <div class="tree-container map-surface">
         {% include "tree.html" %}
     </div>
 </div>

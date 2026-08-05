@@ -1,8 +1,12 @@
-"""Tests for HTTP routes."""
-from opendashboard import db
+"""Tests for HTTP routes (SPA catch-all behavior).
 
-
-class TestIndex:
+The legacy Jinja HTML routes were removed by change
+modernize-frontend-vite-react-flow; `/` and every non-/api GET path now serve
+the built SPA shell from `src/opendashboard/static/index.html`. The SPA does
+its own client-side routing, so unknown session/project ids return the shell
+(200) instead of a server-side 404.
+"""
+class TestRoot:
     def test_returns_200(self, client):
         response = client.get("/")
         assert response.status_code == 200
@@ -11,125 +15,47 @@ class TestIndex:
         response = client.get("/")
         assert response.headers["content-type"].startswith("text/html")
 
-    def test_hides_projects(self, client):
-        """Projects block removed from sidebar per UX fix."""
+    def test_serves_spa_shell(self, client):
+        response = client.get("/")
+        assert '<div id="root">' in response.text
+
+    def test_no_legacy_template_content(self, client):
+        """The SPA shell must not contain server-rendered legacy markup."""
         response = client.get("/")
         assert "Test Project" not in response.text
-        assert "Another Project" not in response.text
-
-    def test_shows_sessions(self, client):
-        response = client.get("/")
-        assert "Root session" in response.text
-        assert "Other project root" in response.text
+        assert "Total Cost" not in response.text
+        assert "No sessions found" not in response.text
 
 
-class TestProjectSessions:
-    def test_returns_200(self, client):
+class TestSpaCatchall:
+    def test_project_path_serves_spa(self, client):
         response = client.get("/project/proj_001")
         assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/html")
+        assert '<div id="root">' in response.text
 
-    def test_shows_session_titles(self, client):
-        response = client.get("/project/proj_001")
-        assert "Root session" in response.text
-        assert "Child session" in response.text
-        assert "Grandchild session" in response.text
-
-    def test_excludes_other_project(self, client):
-        response = client.get("/project/proj_001")
-        assert "Other project root" not in response.text
-
-    def test_missing_project(self, client):
-        response = client.get("/project/nonexistent")
-        assert response.status_code == 200
-
-
-class TestSessionDetail:
-    def test_returns_200(self, client):
+    def test_session_path_serves_spa(self, client):
         response = client.get("/session/ses_001")
         assert response.status_code == 200
+        assert '<div id="root">' in response.text
 
-    def test_shows_session_info(self, client):
-        response = client.get("/session/ses_001")
-        assert "Root session" in response.text
-        assert "ses_001" in response.text
+    def test_session_tree_path_serves_spa(self, client):
+        response = client.get("/session/ses_001/tree")
+        assert response.status_code == 200
+        assert '<div id="root">' in response.text
 
-    def test_shows_delegation_tree(self, client):
-        response = client.get("/session/ses_001")
-        assert "Child session" in response.text
-        assert "Grandchild session" in response.text
+    def test_session_map_path_serves_spa(self, client):
+        response = client.get("/session/ses_001/map")
+        assert response.status_code == 200
+        assert '<div id="root">' in response.text
 
-    def test_not_found_returns_404(self, client):
+    def test_unknown_session_serves_spa(self, client):
+        """Unknown ids hit the SPA shell; the React app shows the 404 state."""
         response = client.get("/session/nonexistent")
-        assert response.status_code == 404
-
-
-class TestSessionTreePartial:
-    def test_returns_200(self, client):
-        response = client.get("/session/ses_001/tree")
         assert response.status_code == 200
+        assert '<div id="root">' in response.text
 
-    def test_shows_tree_nodes(self, client):
-        response = client.get("/session/ses_001/tree")
-        assert "Child session" in response.text
-        assert "Grandchild session" in response.text
-
-    def test_empty_for_nonexistent(self, client):
-        response = client.get("/session/nonexistent/tree")
+    def test_query_params_do_not_affect_spa(self, client):
+        response = client.get("/project/proj_001?search=Child&agent=fixer")
         assert response.status_code == 200
-
-
-class TestProjectSessionsSearch:
-    def test_search_within_project(self, client):
-        response = client.get("/project/proj_001?search=Child")
-        assert response.status_code == 200
-        assert "Child session" in response.text
-        assert "Root session" not in response.text
-
-    def test_agent_within_project(self, client):
-        response = client.get("/project/proj_001?agent=fixer")
-        assert response.status_code == 200
-        assert "Grandchild session" in response.text
-        # Other agents in same project should not appear
-        assert "Root session" not in response.text
-
-    def test_no_match_in_project(self, client):
-        response = client.get("/project/proj_001?search=nonexistent")
-        assert response.status_code == 200
-        assert "No sessions found" in response.text
-
-
-class TestSessionMapPartial:
-    def test_returns_200(self, client):
-        response = client.get("/session/ses_001/map")
-        assert response.status_code == 200
-
-    def test_shows_session_info(self, client):
-        response = client.get("/session/ses_001/map")
-        assert "Root session" in response.text
-
-    def test_shows_tree(self, client):
-        response = client.get("/session/ses_001/map")
-        assert "Child session" in response.text
-        assert "Grandchild session" in response.text
-
-    def test_not_found(self, client):
-        response = client.get("/session/nonexistent/map")
-        assert response.status_code == 404
-
-    def test_root_session_in_sidebar(self, client):
-        """Index sidebar shows root sessions."""
-        response = client.get("/")
-        assert "Root session" in response.text
-        assert "Other project root" in response.text
-
-
-class TestIndexDashboardStats:
-    def test_shows_stats_cards(self, client):
-        response = client.get("/")
-        assert response.status_code == 200
-        assert "Sessions" in response.text
-        assert "Total Cost" in response.text
-        assert "Tokens" in response.text
-        assert "Agents" in response.text
-        assert "4" in response.text  # total_sessions
-        assert "640" in response.text  # total_tokens
+        assert '<div id="root">' in response.text

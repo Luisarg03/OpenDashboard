@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
+from opendashboard import db
 from opendashboard.main import app
 
 TEST_PROJECTS = [
@@ -19,6 +20,8 @@ TEST_SESSIONS = [
         "time_created": 1700000000000, "time_updated": 1700000100000,
         "cost": 0.5, "tokens_input": 100, "tokens_output": 50,
         "tokens_reasoning": 0, "tokens_cache_read": 0, "tokens_cache_write": 0,
+        "summary_additions": 247, "summary_deletions": 89, "summary_files": 3,
+        "summary_diffs": None, "time_archived": None, "time_compacting": 1700000010000,
     },
     {
         "id": "ses_002", "parent_id": "ses_001", "project_id": "proj_001",
@@ -40,6 +43,8 @@ TEST_SESSIONS = [
         "time_created": 1700000600000, "time_updated": 1700000700000,
         "cost": 1.0, "tokens_input": 200, "tokens_output": 100,
         "tokens_reasoning": 0, "tokens_cache_read": 0, "tokens_cache_write": 0,
+        "summary_additions": 0, "summary_deletions": 0, "summary_files": 0,
+        "summary_diffs": None, "time_archived": 1700000700000, "time_compacting": None,
     },
 ]
 
@@ -70,7 +75,13 @@ def test_db(tmp_path):
             tokens_output INTEGER DEFAULT 0,
             tokens_reasoning INTEGER DEFAULT 0,
             tokens_cache_read INTEGER DEFAULT 0,
-            tokens_cache_write INTEGER DEFAULT 0
+            tokens_cache_write INTEGER DEFAULT 0,
+            summary_additions INTEGER DEFAULT 0,
+            summary_deletions INTEGER DEFAULT 0,
+            summary_files INTEGER DEFAULT 0,
+            summary_diffs TEXT,
+            time_archived INTEGER,
+            time_compacting INTEGER
         );
     """)
 
@@ -83,20 +94,29 @@ def test_db(tmp_path):
         conn.execute(
             """INSERT INTO session (id, parent_id, project_id, agent, model, title,
                time_created, time_updated, cost, tokens_input, tokens_output,
-               tokens_reasoning, tokens_cache_read, tokens_cache_write)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               tokens_reasoning, tokens_cache_read, tokens_cache_write,
+               summary_additions, summary_deletions, summary_files, summary_diffs,
+               time_archived, time_compacting)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (ses["id"], ses["parent_id"], ses["project_id"],
              ses["agent"], ses["model"], ses["title"],
              ses["time_created"], ses["time_updated"],
              ses["cost"], ses["tokens_input"], ses["tokens_output"],
              ses["tokens_reasoning"], ses["tokens_cache_read"],
-             ses["tokens_cache_write"]),
+             ses["tokens_cache_write"],
+             ses.get("summary_additions", 0), ses.get("summary_deletions", 0),
+             ses.get("summary_files", 0), ses.get("summary_diffs"),
+             ses.get("time_archived"), ses.get("time_compacting")),
         )
     conn.commit()
     conn.close()
 
     with patch("opendashboard.db.DB_PATH", db_path):
         yield db_path
+    # Drop the cached connection: it is bound to whatever thread opened it
+    # (TestClient portal or the test runner), and sqlite3 forbids cross-thread
+    # use. A fresh connection is created per test on demand.
+    db._connection = None
 
 
 @pytest.fixture

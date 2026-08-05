@@ -1,42 +1,33 @@
 import sqlite3
-from pathlib import Path
+import threading
 from typing import Optional
 from .models import SessionSummary, DelegationNode
 from .config import DB_PATH
 
+_connection: sqlite3.Connection | None = None
+_connection_lock = threading.Lock()
+
 
 def get_db() -> sqlite3.Connection:
-    """Get read-only connection to opencode database."""
-    if not DB_PATH.exists():
-        raise FileNotFoundError(
-            f"OpenCode database not found at {DB_PATH}. "
-            "Make sure OpenCode has been run at least once."
-        )
-    conn = sqlite3.connect(str(DB_PATH))
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA query_only = 1")
-    return conn
+    """Get (cached) read-only connection to opencode database."""
+    global _connection
+    if _connection is not None:
+        return _connection
 
-
-def list_projects() -> list[dict]:
-    """List all projects with session counts."""
-    conn = get_db()
-    rows = conn.execute("""
-        SELECT p.id, p.name, p.worktree, COUNT(s.id) as session_count,
-               MAX(s.time_created) as last_session
-        FROM project p
-        LEFT JOIN session s ON s.project_id = p.id
-        GROUP BY p.id
-        ORDER BY last_session DESC
-    """).fetchall()
-    conn.close()
-    result = []
-    for r in rows:
-        d = dict(r)
-        if not d.get("name"):
-            d["name"] = Path(d["worktree"]).name if d.get("worktree") else d["id"]
-        result.append(d)
-    return result
+    with _connection_lock:
+        # Double-check after acquiring lock
+        if _connection is not None:
+            return _connection
+        if not DB_PATH.exists():
+            raise FileNotFoundError(
+                f"OpenCode database not found at {DB_PATH}. "
+                "Make sure OpenCode has been run at least once."
+            )
+        conn = sqlite3.connect(str(DB_PATH))
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA query_only = 1")
+        _connection = conn
+        return _connection
 
 
 def list_sessions(
@@ -70,7 +61,6 @@ def list_sessions(
     params.append(limit)
 
     rows = conn.execute(query, params).fetchall()
-    conn.close()
     return [SessionSummary.from_row(dict(r)) for r in rows]
 
 
@@ -80,12 +70,13 @@ def get_dashboard_stats() -> dict:
     row = conn.execute("""
         SELECT
             COUNT(*) as total_sessions,
+            COALESCE(SUM(CASE WHEN parent_id IS NULL THEN 1 ELSE 0 END), 0)
+                as total_root_sessions,
             COALESCE(SUM(cost), 0) as total_cost,
             COALESCE(SUM(tokens_input + tokens_output), 0) as total_tokens,
             COUNT(DISTINCT agent) as unique_agents
         FROM session
     """).fetchone()
-    conn.close()
     return dict(row)
 
 
@@ -95,8 +86,26 @@ def list_agents() -> list[str]:
     rows = conn.execute(
         "SELECT DISTINCT agent FROM session ORDER BY agent"
     ).fetchall()
-    conn.close()
     return [r["agent"] for r in rows]
+
+
+def list_session_months(project_id: Optional[str] = None) -> list[dict]:
+    """Get distinct year-month combos with session counts, ordered desc."""
+    conn = get_db()
+    query = """
+        SELECT 
+            strftime('%Y-%m', time_created / 1000, 'unixepoch') AS ym,
+            COUNT(*) as count
+        FROM session
+        WHERE 1=1
+    """
+    params: list = []
+    if project_id:
+        query += " AND project_id = ?"
+        params.append(project_id)
+    query += " GROUP BY ym ORDER BY ym DESC"
+    rows = conn.execute(query, params).fetchall()
+    return [dict(r) for r in rows]
 
 
 def get_delegation_chain(session_id: str) -> list[DelegationNode]:
@@ -123,7 +132,6 @@ def get_delegation_chain(session_id: str) -> list[DelegationNode]:
         """,
         (session_id,),
     ).fetchall()
-    conn.close()
     return [DelegationNode.from_row(dict(r)) for r in rows]
 
 
@@ -132,14 +140,35 @@ def list_root_sessions(
     search: Optional[str] = None,
     agent: Optional[str] = None,
 ) -> list[SessionSummary]:
-    """List root sessions (parent_id IS NULL), optionally filtered."""
+    """List root sessions (parent_id IS NULL), optionally filtered.
+
+    Includes per-root child stats (child_count, chain_cost, chain_tokens).
+    ponytail: counts direct children only, not recursive descendants; a root
+    with grandchildren underreports chain totals. Upgrade to a recursive CTE
+    if multi-level delegation matters.
+    """
     conn = get_db()
     query = """
-        SELECT id, parent_id, project_id, agent, model, title,
-               time_created, time_updated, cost, tokens_input, tokens_output,
-               tokens_reasoning, tokens_cache_read, tokens_cache_write
-        FROM session
-        WHERE parent_id IS NULL
+        WITH child_stats AS (
+            SELECT parent_id,
+                   COUNT(*) as child_count,
+                   COALESCE(SUM(cost), 0) as chain_cost,
+                   COALESCE(SUM(tokens_input + tokens_output), 0) as chain_tokens
+            FROM session
+            WHERE parent_id IS NOT NULL
+            GROUP BY parent_id
+        )
+        SELECT s.id, s.parent_id, s.project_id, s.agent, s.model, s.title,
+               s.time_created, s.time_updated, s.cost, s.tokens_input, s.tokens_output,
+               s.tokens_reasoning, s.tokens_cache_read, s.tokens_cache_write,
+               s.summary_additions, s.summary_deletions, s.summary_files, s.summary_diffs,
+               s.time_archived, s.time_compacting,
+               COALESCE(cs.child_count, 0) as child_count,
+               COALESCE(cs.chain_cost, 0) as chain_cost,
+               COALESCE(cs.chain_tokens, 0) as chain_tokens
+        FROM session s
+        LEFT JOIN child_stats cs ON cs.parent_id = s.id
+        WHERE s.parent_id IS NULL
     """
     params: list = []
 
@@ -150,11 +179,10 @@ def list_root_sessions(
         query += " AND agent = ?"
         params.append(agent)
 
-    query += " ORDER BY time_created DESC LIMIT ?"
+    query += " ORDER BY s.time_created DESC LIMIT ?"
     params.append(limit)
 
     rows = conn.execute(query, params).fetchall()
-    conn.close()
     return [SessionSummary.from_row(dict(r)) for r in rows]
 
 
@@ -171,7 +199,6 @@ def get_session_by_id(session_id: str) -> Optional[SessionSummary]:
         """,
         (session_id,),
     ).fetchone()
-    conn.close()
     if row is None:
         return None
     return SessionSummary.from_row(dict(row))

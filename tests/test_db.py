@@ -4,33 +4,6 @@ from opendashboard import db
 from opendashboard.models import SessionSummary, DelegationNode
 
 
-class TestListProjects:
-    def test_returns_projects(self, test_db):
-        projects = db.list_projects()
-        assert len(projects) == 2
-        names = {p["name"] for p in projects}
-        assert names == {"Test Project", "Another Project"}
-
-    def test_ordered_by_last_session(self, test_db):
-        projects = db.list_projects()
-        # proj_002 has last_session = 1700000600000
-        # proj_001 has last_session = 1700000400000
-        timestamps = [p["last_session"] for p in projects]
-        assert timestamps == sorted(timestamps, reverse=True)
-
-    def test_session_count(self, test_db):
-        projects = db.list_projects()
-        proj1 = next(p for p in projects if p["id"] == "proj_001")
-        assert proj1["session_count"] == 3
-        proj2 = next(p for p in projects if p["id"] == "proj_002")
-        assert proj2["session_count"] == 1
-
-    def test_worktree(self, test_db):
-        projects = db.list_projects()
-        proj1 = next(p for p in projects if p["id"] == "proj_001")
-        assert proj1["worktree"] == "/tmp/test"
-
-
 class TestListSessions:
     def test_all_sessions(self, test_db):
         sessions = db.list_sessions()
@@ -181,7 +154,13 @@ class TestDashboardStats:
     def test_returns_stats_dict(self, test_db):
         stats = db.get_dashboard_stats()
         assert isinstance(stats, dict)
-        assert set(stats.keys()) == {"total_sessions", "total_cost", "total_tokens", "unique_agents"}
+        assert set(stats.keys()) == {
+            "total_sessions",
+            "total_root_sessions",
+            "total_cost",
+            "total_tokens",
+            "unique_agents",
+        }
 
     def test_total_sessions(self, test_db):
         stats = db.get_dashboard_stats()

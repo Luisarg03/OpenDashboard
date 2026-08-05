@@ -1,23 +1,14 @@
 import os
-from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from .config import APP_HOST, APP_PORT, APP_TITLE, STATIC_DIR
-from .filters import register_template_filters
-from .routes import router, templates
+from .routes import router
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Startup: register template filters before first request."""
-    register_template_filters(templates)
-    yield
-
-
-app = FastAPI(title=APP_TITLE, lifespan=lifespan)
+app = FastAPI(title=APP_TITLE)
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(router)

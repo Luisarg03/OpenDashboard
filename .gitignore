@@ -22,3 +22,15 @@ wheels/
 
 # Project notes
 interview/
+
+# Frontend (Vite)
+frontend/node_modules/
+frontend/dist/
+
+# Added by openspec change prune-deprecated-repo-noise: ignore common local/generated artifacts
+.opencode/
+.cache/
+src/opendashboard/static/
+src/opendashboard/templates/
+frontend/.vite/
+frontend/*.tsbuildinfo

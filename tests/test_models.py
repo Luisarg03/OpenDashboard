@@ -76,6 +76,15 @@ class TestSessionSummary:
         assert result.model is None
         assert result.cost == 0
 
+    def test_null_agent_coerced(self):
+        row = {
+            "id": "ses_001", "parent_id": None, "project_id": "proj_001",
+            "agent": None, "title": "Test",
+            "time_created": 1000, "time_updated": 2000,
+        }
+        result = SessionSummary.from_row(row)
+        assert result.agent == "unknown"
+
 
 class TestDelegationNode:
     def test_from_row(self):
@@ -89,6 +98,15 @@ class TestDelegationNode:
         result = DelegationNode.from_row(row)
         assert isinstance(result, DelegationNode)
         assert result.depth == 0
+
+    def test_null_agent_coerced(self):
+        row = {
+            "id": "ses_001", "parent_id": None,
+            "agent": None, "model": "gpt-4", "title": "Test",
+            "time_created": 1000, "depth": 0,
+        }
+        result = DelegationNode.from_row(row)
+        assert result.agent == "unknown"
 
 
 class TestBuildTree:

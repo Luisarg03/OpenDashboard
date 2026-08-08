@@ -1,9 +1,13 @@
 import logging
 
-from pydantic import BaseModel, computed_field
-from typing import Optional
+from pydantic import BaseModel, BeforeValidator, computed_field
+from typing import Annotated, Optional
 
 logger = logging.getLogger(__name__)
+
+# OpenCode's session.agent is nullable in the DB but the API contract is str.
+# Coerce NULL to a sentinel so bad rows cannot 500 an entire listing.
+AgentName = Annotated[str, BeforeValidator(lambda v: v if v is not None else "unknown")]
 
 
 class TokenUsageMixin(BaseModel):
@@ -30,7 +34,7 @@ class SessionSummary(TokenUsageMixin):
     id: str
     parent_id: Optional[str] = None
     project_id: str
-    agent: str
+    agent: AgentName
     model: Optional[str] = None
     title: str
     time_created: int
@@ -64,7 +68,7 @@ class SessionSummary(TokenUsageMixin):
 class DelegationNode(TokenUsageMixin):
     id: str
     parent_id: Optional[str] = None
-    agent: str
+    agent: AgentName
     model: Optional[str] = None
     title: str
     time_created: int

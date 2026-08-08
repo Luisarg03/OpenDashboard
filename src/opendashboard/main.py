@@ -10,6 +10,11 @@ from .routes import router
 
 app = FastAPI(title=APP_TITLE)
 os.makedirs(STATIC_DIR, exist_ok=True)
+# Vite emits absolute /assets/... URLs in index.html; without this mount
+# those requests hit the SPA catch-all and return HTML instead of assets.
+assets_dir = os.path.join(STATIC_DIR, "assets")
+os.makedirs(assets_dir, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(router)
 

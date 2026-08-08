@@ -75,18 +75,28 @@ export function getCascadeLayout(
     };
   });
 
-  const edges: Edge[] = chain.flatMap((node) =>
-    node.parent_id && positioned.has(node.parent_id)
-      ? [
-          {
-            id: `${node.parent_id}->${node.id}`,
-            source: node.parent_id,
-            target: node.id,
-            type: 'smoothstep',
-          },
-        ]
-      : [],
-  );
+  const edges: Edge[] = chain.flatMap((node) => {
+    if (!node.parent_id || !positioned.has(node.parent_id)) return [];
+    const parent = chain.find((n) => n.id === node.parent_id);
+    const deltaMs = parent ? node.time_created - parent.time_created : 0;
+    const label =
+      deltaMs >= 1000
+        ? `+${(deltaMs / 1000).toFixed(1)}s`
+        : deltaMs > 0
+          ? `+${deltaMs}ms`
+          : '';
+    return [
+      {
+        id: `${node.parent_id}->${node.id}`,
+        source: node.parent_id,
+        target: node.id,
+        type: 'smoothstep',
+        label: label || undefined,
+        labelStyle: { fill: 'hsl(var(--muted-foreground))', fontSize: 10 },
+        labelBgStyle: { fill: 'hsl(var(--background))', fillOpacity: 0.9 },
+      },
+    ];
+  });
 
   return { nodes, edges };
 }

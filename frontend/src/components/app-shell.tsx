@@ -1,6 +1,6 @@
 import { Activity, Menu, X } from 'lucide-react';
-import { Component, useState, type ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Component, useEffect, useState, type ReactNode } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -30,22 +30,65 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+const navItems: { to: string; label: string; matchPrefix?: string }[] = [
+  { to: '/', label: 'Dashboard' },
+  // "Sessions" also stays highlighted on /session/:id (session detail page).
+  { to: '/sessions', label: 'Sessions', matchPrefix: '/session' },
+  { to: '/agents', label: 'Agents' },
+];
+
 function SidebarContent() {
+  const { pathname } = useLocation();
+
   return (
-    <div className="flex h-full flex-col gap-4 p-4">
-      <h2 className="text-sm font-semibold">Filters</h2>
-      {/* Placeholder slot for Wave 3 KPI cards. */}
-      <div className="flex-1" />
-    </div>
+    <nav aria-label="Primary" className="flex flex-col gap-1 p-4">
+      {navItems.map((item) => {
+        const active =
+          pathname === item.to ||
+          (item.matchPrefix !== undefined && pathname.startsWith(item.matchPrefix));
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={`row-accent-hover relative flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              active
+                ? 'bg-muted text-foreground'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+            }`}
+          >
+            {item.label}
+            {active && (
+              <div className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-primary" />
+            )}
+          </NavLink>
+        );
+      })}
+    </nav>
   );
 }
 
+// smoke: app-shell scenarios (run manually, do not commit screenshots)
+// 1. Visible link: load any route, sidebar shows Dashboard / Sessions / Agents.
+// 2. Active highlight: navigate to /sessions, "Sessions" link has bg-muted + left bar.
+// 3. Click navigates: click "Agents" link, URL changes to /agents, page header reads "Agents".
+// 4. Mobile drawer: shrink viewport < 768px, sidebar hidden; tap menu icon, sidebar slides in;
+//    tap backdrop, sidebar slides out; press Escape, sidebar closes.
 export function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Escape closes the mobile drawer (desktop sidebar is always visible).
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSidebarOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [sidebarOpen]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-sm">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"

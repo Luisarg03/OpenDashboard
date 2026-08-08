@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './App';
 import { ThemeProvider } from '@/components/theme-provider';
+import { ThemedToaster } from '@/components/toaster';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
+      <ThemedToaster />
     </ThemeProvider>
   </StrictMode>,
 );

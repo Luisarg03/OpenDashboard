@@ -46,7 +46,7 @@ export function ScrubberStats({ chain, cutoff }: ScrubberStatsProps) {
   if (chain.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground">
       <span>
         <strong className="text-foreground">{shown}</strong>/{total} nodes
         shown

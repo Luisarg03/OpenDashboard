@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, X } from 'lucide-react';
 
 import { api } from '@/lib/api/client';
-import { useAgents } from '@/lib/api/agents';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+// ponytail: ?agent= is ignored post Wave 2 — the parent session's agent is almost always orchestrator and filtering by it surfaced zero useful sessions in Wave 1 review. The URL parameter is accepted but does not affect rendering.
 
 /** `GET /api/months` returns year-month buckets with session counts. */
 interface MonthOption {
@@ -32,13 +33,11 @@ const ALL = 'all';
 
 export function DashboardFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const agentsQuery = useAgents();
   const monthsQuery = useMonths();
 
   const search = searchParams.get('search') ?? '';
-  const agent = searchParams.get('agent') ?? ALL;
   const month = searchParams.get('month') ?? ALL;
-  const hasFilters = Boolean(search || searchParams.has('agent') || searchParams.has('month'));
+  const hasFilters = Boolean(search || searchParams.has('month'));
 
   const setFilter = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams);
@@ -52,11 +51,10 @@ export function DashboardFilters() {
 
   const reset = () => setSearchParams({});
 
-  const agents = useMemo(() => agentsQuery.data?.agents ?? [], [agentsQuery.data]);
   const months = useMemo(() => monthsQuery.data?.months ?? [], [monthsQuery.data]);
 
   return (
-    <div className="flex flex-col gap-3 md:flex-row md:items-center">
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 md:flex-row md:items-center">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -67,20 +65,6 @@ export function DashboardFilters() {
           aria-label="Search sessions"
         />
       </div>
-
-      <Select value={agent} onValueChange={(value) => setFilter('agent', value)}>
-        <SelectTrigger className="w-full md:w-48" aria-label="Filter by agent">
-          <SelectValue placeholder="All agents" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>All agents</SelectItem>
-          {agents.map((name) => (
-            <SelectItem key={name} value={name}>
-              {name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
 
       <Select value={month} onValueChange={(value) => setFilter('month', value)}>
         <SelectTrigger className="w-full md:w-40" aria-label="Filter by month">

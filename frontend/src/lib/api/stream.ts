@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { toastError, toastSuccess } from '@/lib/toast';
 import type { DelegationNode } from './types';
 
 export type StreamStatus = 'connecting' | 'open' | 'closed' | 'error';
@@ -108,6 +109,8 @@ export function useSessionEvents(
 
       source.onopen = () => {
         if (disposed) return;
+        // Reconnected after consecutive errors -> transient success toast.
+        if (errorCount > 0) toastSuccess('Live updates resumed');
         errorCount = 0;
         setStatus('open');
       };
@@ -144,6 +147,8 @@ export function useSessionEvents(
         errorCount += 1;
         if (errorCount > MAX_CONSECUTIVE_ERRORS) {
           setStatus('error');
+          // Transient: surface as a toast, keep the page interactive.
+          toastError('Live updates paused — retrying');
           // Cancel the native auto-reconnect; schedule a bounded manual retry.
           source.close();
           const delay = Math.min(

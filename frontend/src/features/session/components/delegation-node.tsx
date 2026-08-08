@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
-import { motion } from 'motion/react';
+import { motion, type Transition } from 'motion/react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -13,6 +13,12 @@ export type DelegationNodeData = {
   isLive: boolean;
   /** Set when focus mode is active and this node is outside the focus chain. */
   dimmed?: boolean;
+  /** Timeline mode only: the enter/exit transition for the motion wrapper (D7/D8). */
+  motionTransition?: Transition;
+  /** Timeline mode only: true while the node plays its exit slide-out. */
+  exiting?: boolean;
+  /** Timeline mode only: called when the exit animation completes. */
+  onExitComplete?: (id: string) => void;
 };
 
 export type DelegationFlowNode = Node<DelegationNodeData, 'delegation'>;
@@ -33,9 +39,9 @@ export const DelegationNodeView = memo(function DelegationNodeView({
       className={cn(
         'w-60 p-3 text-xs shadow-sm',
         `border-l-2 ${agentColor.border}`,
-        isLive && 'animate-pulse ring-2 ring-emerald-500/40',
-        data.dimmed && 'opacity-30',
+        isLive && 'ring-2 ring-status-info/40',
       )}
+      data-dim={data.dimmed ? 'true' : undefined}
     >
       <motion.div
         whileHover={{ scale: 1.02 }}
@@ -45,13 +51,19 @@ export const DelegationNodeView = memo(function DelegationNodeView({
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
             {isLive && (
-              <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500" />
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-success opacity-75" />
+                <span
+                  className="relative inline-flex h-2 w-2 rounded-full bg-status-success bloom-low"
+                  style={{ '--bloom-color': 'hsl(var(--status-success))' } as React.CSSProperties}
+                />
+              </span>
             )}
             <span className="truncate font-medium">{node.agent}</span>
           </div>
           <Badge
             variant={isLive ? 'default' : 'secondary'}
-            className={isLive ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-transparent' : ''}
+            className={isLive ? 'bg-status-success/15 text-status-success border-transparent' : ''}
           >
             {isLive ? 'Running' : 'Done'}
           </Badge>

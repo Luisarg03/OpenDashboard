@@ -13,4 +13,4 @@ class TestConfig:
         assert APP_HOST == "127.0.0.1"
 
     def test_port(self):
-        assert APP_PORT == 8080
+        assert APP_PORT == 8420

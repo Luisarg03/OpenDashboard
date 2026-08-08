@@ -2,63 +2,90 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Safelist: status text utilities used only by the a11y contrast test
+   (Tailwind generates on demand from scanned source, so unused classes
+   would never be emitted). */
+@source inline("text-status-success");
+@source inline("text-status-warning");
+@source inline("text-status-error");
+@source inline("text-status-info");
+
 @layer base {
   :root {
-    /* Modern Indigo + Teal palette */
-    --background: 220 14% 98%;
-    --foreground: 224 71% 4%;
+    /* Light mode — functional, not primary */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 240 10% 3.9%;
     --primary: 239 84% 67%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 9% 46%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 172 66% 50%;
-    --accent-foreground: 224 71% 4%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
     --ring: 239 84% 67%;
     --radius: 0.5rem;
-
-    /* Extended palette */
-    --color-indigo-500: 239 84% 67%;
-    --color-teal-500: 172 66% 50%;
-    --color-emerald-500: 160 84% 39%;
-    --color-amber-500: 38 92% 50%;
-    --color-rose-500: 347 77% 50%;
+    /* Status colors — 600-level hues (emerald-600, amber-600) fail WCAG AA
+       (4.5:1) on white; these darker values clear it (4.75-4.9:1) */
+    --status-success: 152 69% 30%;
+    --status-warning: 38 92% 32%;
+    --status-error: 0 84% 48%;
+    --status-info: 217 91% 52%;
+    /* Density scale — theme-independent */
+    --density-comfortable: 36px;
+    --density-compact: 28px;
+    --density-row-padding: 1rem;
+    --density-row-padding-compact: 0.5rem;
+    /* Typography scale — theme-independent (size / line-height pairs) */
+    --typography-display: 1.5rem / 2rem;
+    --typography-h1: 1.25rem / 1.75rem;
+    --typography-h2: 0.875rem / 1.25rem;
+    --typography-body: 0.75rem / 1rem;
+    --typography-caption: 0.625rem / 1rem;
   }
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 20% 98%;
-    --card: 224 50% 8%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 50% 8%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 228 100% 72%;
-    --primary-foreground: 224 71% 4%;
-    --secondary: 224 40% 14%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 224 40% 14%;
-    --muted-foreground: 217 20% 60%;
-    --accent: 172 66% 50%;
-    --accent-foreground: 224 71% 4%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 224 30% 16%;
-    --input: 224 30% 16%;
-    --ring: 228 100% 72%;
-
-    --color-indigo-500: 228 100% 72%;
-    --color-teal-500: 172 66% 50%;
-    --color-emerald-500: 160 84% 45%;
-    --color-amber-500: 38 92% 55%;
-    --color-rose-500: 347 77% 55%;
+    --background: 240 6% 4%;       /* near-black #0A0A0B */
+    --foreground: 0 0% 98%;        /* bright white */
+    --card: 240 6% 7%;             /* slightly lighter #18181B */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 6% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 239 84% 67%;        /* indigo-500 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 12%;       /* #1E1E22 */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 12%;
+    --muted-foreground: 240 5% 55%;
+    --accent: 240 4% 12%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;          /* subtle gray border */
+    --input: 240 4% 16%;
+    --ring: 239 84% 67%;
+    /* Status colors — lightened for dark backgrounds */
+    --status-success: 152 69% 55%;
+    --status-warning: 38 92% 60%;
+    --status-error: 0 84% 70%;
+    --status-info: 217 91% 70%;
+    /* Density + typography scales are theme-independent */
+    --density-comfortable: 36px;
+    --density-compact: 28px;
+    --density-row-padding: 1rem;
+    --density-row-padding-compact: 0.5rem;
+    --typography-display: 1.5rem / 2rem;
+    --typography-h1: 1.25rem / 1.75rem;
+    --typography-h2: 0.875rem / 1.25rem;
+    --typography-body: 0.75rem / 1rem;
+    --typography-caption: 0.625rem / 1rem;
   }
   body {
     @apply bg-background text-foreground;
@@ -69,25 +96,46 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  /* The --color-* tokens hold hsl triplets (e.g. "0 0% 100%"); they are only
+     valid CSS colors inside hsl(), matching the hsl(var(--primary)) pattern
+     used elsewhere in this file. */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-status-success: hsl(var(--status-success));
+  --color-status-warning: hsl(var(--status-warning));
+  --color-status-error: hsl(var(--status-error));
+  --color-status-info: hsl(var(--status-info));
+  --spacing-density-comfortable: var(--density-comfortable);
+  --spacing-density-compact: var(--density-compact);
+  --spacing-density-row-padding: var(--density-row-padding);
+  --spacing-density-row-padding-compact: var(--density-row-padding-compact);
+  --text-display: 1.5rem;
+  --text-display--line-height: 2rem;
+  --text-h1: 1.25rem;
+  --text-h1--line-height: 1.75rem;
+  --text-h2: 0.875rem;
+  --text-h2--line-height: 1.25rem;
+  --text-body: 0.75rem;
+  --text-body--line-height: 1rem;
+  --text-caption: 0.625rem;
+  --text-caption--line-height: 1rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -100,12 +148,12 @@ input[type="range"] {
   appearance: none;
   height: 6px;
   border-radius: 3px;
-  background: hsl(220 13% 91%);
+  background: hsl(240 5.9% 90%);
   outline: none;
   transition: background 0.15s;
 }
 .dark input[type="range"] {
-  background: hsl(224 30% 16%);
+  background: hsl(240 4% 16%);
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -121,7 +169,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
 }
 input[type="range"]::-moz-range-thumb {
   width: 18px;
@@ -135,7 +183,7 @@ input[type="range"]::-moz-range-thumb {
 }
 input[type="range"]::-moz-range-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
 }
 
 /* Scrollbar — subtle in dark mode */
@@ -144,12 +192,77 @@ input[type="range"]::-moz-range-thumb:hover {
   height: 8px;
 }
 .dark ::-webkit-scrollbar-track {
-  background: hsl(224 50% 8%);
+  background: hsl(240 6% 7%);
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: hsl(224 30% 20%);
+  background: hsl(240 4% 20%);
   border-radius: 4px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(224 30% 28%);
+  background: hsl(240 4% 28%);
+}
+
+/* Data typography: JetBrains Mono for data values */
+.font-data,
+[data-font="data"],
+.font-mono {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* Global tabular-nums for stable number rendering */
+* {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Recharts chart axis visibility in dark mode */
+.dark .recharts-cartesian-axis-line,
+.dark .recharts-cartesian-axis-tick-line {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+.dark .recharts-cartesian-axis-tick-value {
+  fill: rgba(255, 255, 255, 0.5);
+}
+
+/* Row hover accent bar — interactive row signal */
+.row-accent-hover {
+  transition: padding-left 200ms ease-out, border-left-color 200ms ease-out;
+  border-left: 2px solid transparent;
+}
+.row-accent-hover:hover {
+  padding-left: 1.25rem; /* pl-5 */
+  border-left-color: hsl(var(--primary));
+}
+
+/* Bloom glow — status indicator effect */
+.bloom-low { box-shadow: 0 0 4px var(--bloom-color, currentColor); }
+.bloom-high { box-shadow: 0 0 7px var(--bloom-color, currentColor); }
+
+/* Focus-mode dim — graph nodes outside the focus chain (opacity mirrors the
+   muted-foreground visual; transition disabled under reduced motion). */
+[data-dim='true'] {
+  opacity: 0.3;
+  transition: opacity 200ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-dim='true'] {
+    transition: none;
+  }
+}
+
+/* React Flow canvas theming. xyflow v12 dropped the v11 `theme` prop; the
+   token overrides land here as --xy-* CSS variables instead. colorMode="dark"
+   on <ReactFlow> adds the .dark class, so `.react-flow.dark` (later in the
+   bundle than xyflow's own stylesheet) wins for both app themes — the
+   variables resolve against the active --card/--border/--ring tokens. */
+.react-flow.dark {
+  --xy-background-color: hsl(var(--card));
+  --xy-edge-stroke: hsl(var(--border));
+  --xy-node-background-color: hsl(var(--card));
+  --xy-node-border: hsl(var(--border));
+}
+.react-flow__node.selectable:focus,
+.react-flow__node.selectable:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }

@@ -17,6 +17,13 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
+@router.get("/api/health")
+async def api_health():
+    """Health check and singleton discovery identity marker."""
+    return {"status": "ok", "service": "opendashboard", "version": 1}
+
+
 # SSE stream timing (seconds). Module-level so tests can patch them.
 SESSION_UPDATE_INTERVAL_S = 5
 HEARTBEAT_INTERVAL_S = 15

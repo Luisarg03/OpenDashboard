@@ -168,10 +168,10 @@ export function TimelineScrubber({
       onKeyDown={handleKeyDown}
     >
       {/* Track */}
-      <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
+      <div className="absolute inset-x-0 top-1/2 h-0.5 rounded-full bg-border" />
       {/* Played portion */}
       <div
-        className="absolute left-0 top-1/2 h-px bg-primary"
+        className="absolute left-0 top-1/2 h-0.5 rounded-full bg-primary"
         style={{ width: cutoffX }}
       />
 
@@ -213,8 +213,8 @@ export function TimelineScrubber({
 
       {/* Handle */}
       <div
-        className="absolute h-4 w-4 cursor-grab rounded-full border-2 border-background bg-primary shadow-md"
-        style={{ left: cutoffX - 8, top: 'calc(50% - 8px)' }}
+        className="absolute h-5 w-5 cursor-grab rounded-full border-2 border-background bg-primary shadow-md transition-transform hover:scale-110"
+        style={{ left: cutoffX - 10, top: 'calc(50% - 10px)' }}
       />
 
       {/* Live-tail badge: new nodes hidden behind the cutoff */}
@@ -225,7 +225,7 @@ export function TimelineScrubber({
             event.stopPropagation();
             onChange(maxTime);
           }}
-          className="absolute right-0 top-0 animate-pulse rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-emerald-600"
+          className="absolute right-0 top-0 animate-pulse rounded-full bg-status-success px-2 py-0.5 text-[10px] font-semibold text-white hover:opacity-80"
           aria-label={`${hiddenLiveCount} new nodes hidden by the cutoff — click to show them`}
         >
           +{hiddenLiveCount} new

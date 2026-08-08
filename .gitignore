@@ -34,3 +34,9 @@ src/opendashboard/static/
 src/opendashboard/templates/
 frontend/.vite/
 frontend/*.tsbuildinfo
+
+# Local/generated artifacts
+opencode.db
+test-results/
+frontend/test-results/
+.cortexkit/

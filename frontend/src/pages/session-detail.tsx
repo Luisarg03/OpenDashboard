@@ -5,8 +5,16 @@ import { Pause, Play, RotateCcw } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DelegationGraph } from '@/features/session/components/delegation-graph';
+import { DelegationGraph, type ViewMode } from '@/features/session/components/delegation-graph';
+import { NodeDetailDrawer } from '@/features/session/components/node-detail-drawer';
 import { ScrubberStats } from '@/features/session/components/scrubber-stats';
 import { TimelineScrubber } from '@/features/session/components/timeline-scrubber';
 import {
@@ -19,10 +27,12 @@ import {
   useCascadePlayback,
   type PlaybackSpeed,
 } from '@/features/session/hooks/use-cascade-playback';
+import ModelTags from '@/components/ui/model-tags';
 
 import { ApiError } from '@/lib/api/client';
 import { useSession, useSessionChain } from '@/lib/api/sessions';
 import { useSessionEvents } from '@/lib/api/stream';
+import type { DelegationNode } from '@/lib/api/types';
 import type { StreamStatus } from '@/lib/api/stream';
 
 function isNotFound(error: unknown): boolean {
@@ -36,9 +46,9 @@ function formatDateTime(ms: number): string {
 function streamStatusColor(status: StreamStatus): string {
   switch (status) {
     case 'open':
-      return 'bg-emerald-500';
+      return 'bg-status-success';
     case 'error':
-      return 'bg-red-500';
+      return 'bg-status-error';
     default:
       return 'bg-muted-foreground/50';
   }
@@ -89,6 +99,13 @@ export function SessionDetailPage() {
     () => (ts: number) => Math.min(Math.max(ts, earliest), latest),
     [earliest, latest],
   );
+
+  const [selectedNode, setSelectedNode] = useState<DelegationNode | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('expanded');
+
+  const handleSelectNode = (nodeId: string) => {
+    setSelectedNode(filteredChain.find((n) => n.id === nodeId) ?? null);
+  };
 
   const { cutoff, setCutoff, isPlaying, speed, setSpeed, play, pause, reset } =
     useCascadePlayback({
@@ -169,6 +186,7 @@ export function SessionDetailPage() {
   }
 
   const session = sessionQuery.data.session;
+  const { model } = session;
   const liveCost = lastTotals?.cost ?? session.cost;
   const liveTokens =
     lastTotals !== null
@@ -184,9 +202,9 @@ export function SessionDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
         >
-          <header className="flex flex-col gap-2 rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-6">
+          <header className="flex flex-col gap-2 border-b border-border p-6">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">{session.title}</h1>
+              <h1 className="text-xl font-medium tracking-tight">{session.title}</h1>
               <span
                 className={`inline-block h-2 w-2 shrink-0 rounded-full ${streamStatusColor(status)}`}
                 title={`Stream ${status}`}
@@ -195,7 +213,7 @@ export function SessionDetailPage() {
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
               <span>{session.agent}</span>
-              {session.model && <span>{session.model}</span>}
+              {model && <ModelTags model={model} />}
               <span>{formatDateTime(session.time_created)}</span>
               <span className="tabular-nums">${liveCost.toFixed(2)}</span>
               <span className="tabular-nums">{liveTokens.toLocaleString()} tokens</span>
@@ -226,7 +244,36 @@ export function SessionDetailPage() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <ScrubberStats chain={allNodes} cutoff={cutoff} />
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 rounded-lg border border-border bg-card p-1">
+              {/* TODO: reintroduce the Failures Only button when DelegationNode gains a status field — see design.md D8 */}
+              <Button
+                variant={viewMode === 'expanded' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('expanded')}
+                aria-label="Cascade layout"
+                aria-pressed={viewMode === 'expanded'}
+              >
+                Cascade
+              </Button>
+              <Button
+                variant={viewMode === 'timeline' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('timeline')}
+                aria-label="Timeline layout"
+                aria-pressed={viewMode === 'timeline'}
+              >
+                Timeline
+              </Button>
+              <Button
+                variant={viewMode === 'aggregated' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('aggregated')}
+                aria-label="Aggregated layout"
+                aria-pressed={viewMode === 'aggregated'}
+              >
+                Aggregated
+              </Button>
+              <div className="h-4 w-px bg-border" />
               <Button
                 variant="outline"
                 size="icon"
@@ -243,18 +290,25 @@ export function SessionDetailPage() {
               >
                 <RotateCcw />
               </Button>
-              <select
-                value={speed}
-                onChange={(event) =>
-                  setSpeed(Number(event.target.value) as PlaybackSpeed)
+              <div className="h-4 w-px bg-border" />
+              <Select
+                value={String(speed)}
+                onValueChange={(value) =>
+                  setSpeed(Number(value) as PlaybackSpeed)
                 }
-                aria-label="Playback speed"
-                className="h-8 rounded-md border border-input bg-background px-2 text-xs"
               >
-                <option value={0.5}>0.5x</option>
-                <option value={1}>1x</option>
-                <option value={2}>2x</option>
-              </select>
+                <SelectTrigger
+                  aria-label="Playback speed"
+                  className="h-8 w-[72px] bg-background px-2 text-xs"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0.5">0.5x</SelectItem>
+                  <SelectItem value="1">1x</SelectItem>
+                  <SelectItem value="2">2x</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -271,11 +325,13 @@ export function SessionDetailPage() {
               layout
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               data-testid="graph-area"
-              className="h-[600px] rounded-md border"
+              className="h-[600px] rounded-lg border border-border bg-card p-2"
             >
-              <DelegationGraph chain={filteredChain} liveNodes={liveNodeIds} />
+              <DelegationGraph chain={filteredChain} liveNodes={liveNodeIds} onSelect={handleSelectNode} viewMode={viewMode} />
             </motion.div>
           </AnimatePresence>
+
+          <NodeDetailDrawer node={selectedNode} onClose={() => setSelectedNode(null)} />
         </div>
       )}
     </div>

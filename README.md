@@ -61,7 +61,7 @@ OpenCode must have been run at least once (this creates the database). No other 
 </p>
 
 <p align="center">
-  <img src="docs/images/dashboard-mobile.png" alt="Mobile layout" width="390" />
+  <img src="docs/images/dashboard-mobile.png" alt="Mobile layout" width="280" />
   <br />
   <em>Mobile layout: responsive design for on-the-go inspection.</em>
 </p>

@@ -1,11 +1,12 @@
 [project]
 name = "opendashboard"
 version = "0.1.0"
-description = "Add your description here"
+description = "Visualizer for OpenCode agent delegation chains"
 readme = "README.md"
 authors = [
-    { name = "Luis Paz", email = "lmeheyen@proveedor.intercorp.com.pe" }
+    { name = "Luis Paz", email = "35399759+Luisarg03@users.noreply.github.com" }
 ]
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",

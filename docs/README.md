@@ -18,14 +18,14 @@ cd frontend && npm install --legacy-peer-deps && cd ..
 
 # Start backend + frontend together
 make dev
-# → SPA (Vite dev): http://127.0.0.1:5173  ·  API: http://127.0.0.1:8080/api/*
+# → SPA (Vite dev): http://127.0.0.1:5173  ·  API: http://127.0.0.1:8420/api/*
 ```
 
 `make dev` runs `scripts/dev.sh`: it starts the FastAPI backend in the
-background (`uv run opendashboard`, port 8080), waits 2s, and starts the Vite
+background (`uv run opendashboard`, port 8420), waits 2s, and starts the Vite
 dev server (port 5173) with HMR. Vite proxies `/api` and `/static` to the
 backend; on exit the script kills the backend. To run the backend alone:
-`uv run opendashboard` → http://127.0.0.1:8080 (serves the built SPA at `/`).
+`uv run opendashboard` → http://127.0.0.1:8420 (serves the built SPA at `/`).
 
 **Requirements:** Python ≥3.12, Node ≥20, OpenCode run at least once (creates
 the DB).

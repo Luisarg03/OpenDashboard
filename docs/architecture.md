@@ -44,7 +44,7 @@ The SPA lives in `frontend/` and talks to FastAPI exclusively over JSON.
 
 Production build (`npm run build`) writes to `src/opendashboard/static/`;
 FastAPI serves it from `/` via the SPA catch-all. In dev, Vite's proxy
-(`/api`, `/static` → `127.0.0.1:8080`) keeps a single backend process.
+(`/api`, `/static` → `127.0.0.1:8420`) keeps a single backend process.
 
 ---
 

@@ -696,7 +696,7 @@ All constants are in `src/opendashboard/config.py`.
 |----------|------|-------|-------------|
 | `APP_TITLE` | `str` | `"OpenDashboard"` | FastAPI `title` parameter |
 | `APP_HOST` | `str` | `"127.0.0.1"` | Uvicorn bind address |
-| `APP_PORT` | `int` | `8080` | Uvicorn bind port |
+| `APP_PORT` | `int` | `8420` | Uvicorn bind port |
 
 ### Version
 

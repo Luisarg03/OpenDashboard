@@ -64,11 +64,11 @@ uv run opendashboard
 
 You should see:
 ```
-OpenDashboard starting at http://127.0.0.1:8080
+OpenDashboard starting at http://127.0.0.1:8420
 DB: /home/youruser/.local/share/opencode/opencode.db
 ```
 
-Open your browser to **http://127.0.0.1:8080**.
+Open your browser to **http://127.0.0.1:8420**.
 
 > **If you see "OpenCode database not found":** Make sure you've run OpenCode at least once to generate the database. The first time OpenCode runs, it creates `~/.local/share/opencode/opencode.db` automatically.
 

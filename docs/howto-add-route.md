@@ -255,7 +255,7 @@ uv run pytest tests/ -v
 ### Step 7: Verify with the Running App
 
 1. Start the server: `uv run opendashboard`
-2. Open `http://127.0.0.1:8080`
+2. Open `http://127.0.0.1:8420`
 3. Navigate to trigger your new route
 4. Check the browser console for any errors
 5. For partials, verify that HTMX swaps the content correctly

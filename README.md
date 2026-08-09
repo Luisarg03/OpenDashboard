@@ -55,15 +55,9 @@ OpenCode must have been run at least once (this creates the database). No other 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/session-detail.png" alt="Session detail with delegation graph" width="700" />
+  <img src="docs/images/session.png" alt="Session detail with delegation graph" width="700" />
   <br />
   <em>Session detail: interactive delegation graph with timeline scrubber and node details.</em>
-</p>
-
-<p align="center">
-  <img src="docs/images/dashboard-mobile.png" alt="Mobile layout" width="280" />
-  <br />
-  <em>Mobile layout: responsive design for on-the-go inspection.</em>
 </p>
 
 ## Development

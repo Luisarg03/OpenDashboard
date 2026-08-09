@@ -90,12 +90,23 @@ npx playwright test     # end-to-end tests
 
 ## Architecture
 
-```
-┌──────────────┐     ┌──────────────────────┐     ┌──────────────────────────┐
-│ OpenCode DB  │────▶│ FastAPI (read-only)   │────▶│ React SPA                │
-│ SQLite       │     │ Python 3.12           │     │ Vite 5 · React 19        │
-│ query_only   │     │ JSON API + SSE        │     │ React Flow · TanStack    │
-└──────────────┘     └──────────────────────┘     └──────────────────────────┘
+```mermaid
+graph LR
+    DB[("💾 OpenCode DB<br/>SQLite · query_only")]
+    API["⚙️ FastAPI<br/>Python 3.12<br/>JSON API + SSE"]
+    SPA["🌐 React SPA<br/>Vite 5 · React 19<br/>React Flow · TanStack Query"]
+
+    DB -->|read-only| API
+    API -->|JSON| SPA
+    API -.->|SSE live tail| SPA
+
+    classDef data fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef backend fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef frontend fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+
+    class DB data
+    class API backend
+    class SPA frontend
 ```
 
 The backend is a pure JSON API. All rendering happens client-side in the React SPA. The database is opened with `PRAGMA query_only = 1` so OpenDashboard never writes to the OpenCode database.

@@ -22,8 +22,8 @@ export function DashboardPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="border-b border-border p-6">
+    <div className="flex flex-col gap-4">
+      <header className="border-b border-border pb-2">
         <h1 className="text-2xl font-medium tracking-tight">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">OpenCode delegation tracker</p>
       </header>

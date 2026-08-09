@@ -37,6 +37,8 @@ export interface DataTableProps<T> {
   emptyDescription: string;
   /** Optional consumer content rendered between the column filters and the table controls. */
   toolbar?: ReactNode;
+  /** Initial density mode. Defaults to 'comfortable'. */
+  defaultDensity?: 'comfortable' | 'compact';
 }
 
 const FILTER_DEBOUNCE_MS = 150;
@@ -58,10 +60,11 @@ export function DataTable<T>({
   emptyTitle,
   emptyDescription,
   toolbar,
+  defaultDensity = 'comfortable',
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
+  const [density, setDensity] = useState<'comfortable' | 'compact'>(defaultDensity);
   // Per-column filter draft; the settled value reaches the table 150ms later.
   const [filterDrafts, setFilterDrafts] = useState<Record<string, string>>({});
   const filterTimers = useRef<Record<string, number>>({});

@@ -9,7 +9,7 @@
 - [x] 2.2 Delete `opendashboard.url` file write/unlink logic
 - [x] 2.3 Delete `enabled` option handling — remove all `options?.enabled` checks
 - [x] 2.4 Add discovery probe: `fetch("http://127.0.0.1:<PORT>/api/health")` with three-outcome handling (our server / foreign service / connection refused)
-- [x] 2.5 Change spawn `cwd` to absolute path: `--directory /home/hiro03/Private/Projects/OpenCodeGlobal/OpenDashboard`
+- [x] 2.5 Change spawn `cwd` to absolute path: `--directory <path-to-opendashboard-repo>`
 - [x] 2.6 Add boot-race fallback: after spawn fails with exit code 3 (`EADDRINUSE`), re-probe health once; if identity marker found, reuse instead of error
 - [x] 2.7 Fix `dispose()`: kill child only if this instance spawned it (`if (childProcess)`)
 - [x] 2.8 Fix `app.log()` call: pass `{ body: { service: "opendashboard", level: "info", message: "..." } }` instead of bare string

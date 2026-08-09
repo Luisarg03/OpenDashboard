@@ -169,6 +169,7 @@ export function SessionList({ filters }: SessionListProps) {
         data={sessions}
         emptyTitle="No sessions match"
         emptyDescription="Try adjusting the filters, or check back after a delegation run."
+        defaultDensity="compact"
       />
     </section>
   );

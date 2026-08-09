@@ -180,4 +180,30 @@ describe('aggregateSubagents', () => {
     ];
     expect(aggregateSubagents(input)).toEqual(aggregateSubagents(input));
   });
+
+  it('chart-level filter excludes the parent from projected items', () => {
+    const input = [
+      {
+        sessionId: 's1',
+        chain: chain(
+          node({ id: 'r1', parent_id: null, agent: 'orchestrator', cost: 0.5, tokens_input: 100, tokens_output: 50 }),
+          node({ id: 'b1', agent: 'builder', cost: 0.2, tokens_input: 800, tokens_output: 200 }),
+          node({ id: 'f1', agent: 'fixer', cost: 0.1, tokens_input: 300, tokens_output: 200 }),
+        ),
+      },
+    ];
+    const map = aggregateSubagents(input);
+    const items = Array.from(map, ([agent, totals]) => ({
+      agent,
+      value: totals.tokens,
+      isParent: totals.isParent,
+    }))
+      .filter((item) => !item.isParent)
+      .sort((a, b) => b.value - a.value);
+
+    expect(items).toHaveLength(2);
+    expect(items[0].agent).toBe('builder');
+    expect(items[1].agent).toBe('fixer');
+    expect(items.every((item) => !item.isParent)).toBe(true);
+  });
 });

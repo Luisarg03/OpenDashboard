@@ -18,7 +18,7 @@ During initialization, the plugin SHALL probe the health endpoint to determine i
 
 #### Scenario: No server running, plugin spawns
 - **WHEN** OpenCode starts and the health probe returns connection-refused
-- **THEN** the plugin spawns `uv run --directory /home/hiro03/.../OpenDashboard opendashboard --port <PORT>` and polls healthcheck
+- **THEN** the plugin spawns `uv run --directory <path-to-opendashboard-repo> opendashboard --port <PORT>` and polls healthcheck
 
 #### Scenario: Server already running, plugin reuses
 - **WHEN** OpenCode starts and the health probe returns 200 with `{"service": "opendashboard", "version": 1}`

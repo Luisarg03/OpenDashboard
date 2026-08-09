@@ -51,7 +51,7 @@ function KpiTile({ title, value, current }: KpiTileProps) {
   const showDelta = current !== 0;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="rounded-lg border border-border bg-card p-[var(--density-comfortable)]">
       <p className="text-xs text-muted-foreground">{title}</p>
       <p className="mt-1 text-2xl font-medium tabular-nums">{value}</p>
       {showDelta && (
@@ -88,7 +88,7 @@ export function KpiSection() {
 
   if (isPending) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-24" />
         ))}
@@ -111,7 +111,7 @@ export function KpiSection() {
   return (
     <section
       data-testid="kpi-section"
-      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
     >
       {cards.map((card, index) => (
         <motion.div

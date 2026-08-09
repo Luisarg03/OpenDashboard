@@ -43,8 +43,9 @@ export default function CostBySubagentCard({ filters }: CostBySubagentCardProps)
       value: totals.cost,
       color: getAgentBarColor(agent),
       isParent: totals.isParent,
-      parentLabel: totals.isParent ? 'parent' : null,
-    })).sort((a, b) => b.value - a.value);
+    }))
+      .filter((item) => !item.isParent)
+      .sort((a, b) => b.value - a.value);
     return showAll ? sorted : sorted.slice(0, TOP_N);
   }, [data, showAll]);
 
@@ -111,21 +112,8 @@ export default function CostBySubagentCard({ filters }: CostBySubagentCardProps)
                     className="fill-muted-foreground"
                     fontSize={11}
                   />
-                  <LabelList
-                    dataKey="parentLabel"
-                    position="insideTop"
-                    className="fill-card-foreground opacity-80"
-                    fontSize={9}
-                    formatter={(value: unknown) => String(value ?? '')}
-                  />
                   {items.map((item) => (
-                    <Cell
-                      key={item.agent}
-                      fill={item.color}
-                      stroke={item.isParent ? 'hsl(var(--foreground))' : 'none'}
-                      strokeWidth={item.isParent ? 1.5 : 0}
-                      strokeDasharray={item.isParent ? '4 2' : '0'}
-                    />
+                    <Cell key={item.agent} fill={item.color} />
                   ))}
                 </Bar>
               </BarChart>

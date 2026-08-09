@@ -73,8 +73,8 @@ Toggle semantics: the plugin is on when the file is present. Disable by moving i
 ### 6. Absolute working directory for spawn
 
 **Why:** The plugin is global, so it loads in every project. `cwd: ctx.directory` was wrong — `uv run opendashboard` only resolves inside the OpenDashboard repo and would fail (5s healthcheck timeout on every OpenCode start) anywhere else. Spawn becomes:
-`uv run --directory /home/hiro03/Private/Projects/OpenCodeGlobal/OpenDashboard opendashboard --port <PORT>`
-Path hardcoded — this plugin is personal, single-machine, and making it configurable is unjustified complexity.
+`uv run --directory <path-to-opendashboard-repo> opendashboard --port <PORT>`
+Path must be absolute (the plugin is global, loads in every project). Hardcoded to the author's clone; forks substitute their own path.
 
 ### 7. Ownership-based cleanup
 

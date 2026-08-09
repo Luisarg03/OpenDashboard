@@ -1,8 +1,19 @@
-# app-shell Specification
+## REMOVED Requirements
 
-## Purpose
-TBD - created by archiving change frontend-modernization-wave-1. Update Purpose after archive.
-## Requirements
+### Requirement: Sidebar shows application navigation
+
+**Reason:** The sidebar and its navigation entries were removed. The dashboard at `/` is the single main view; navigation into a session or agents route happens by clicking into data or entering a URL directly, and return navigation uses the header back button.
+
+**Migration:** Navigation to `/sessions` and `/agents` is by direct URL only. Return to the dashboard uses the header back button.
+
+### Requirement: The sidebar is collapsible on small viewports
+
+**Reason:** The sidebar no longer exists, so the mobile drawer, backdrop, and Escape handler are all unnecessary.
+
+**Migration:** Navigation to `/sessions` and `/agents` is by direct URL only. Return to the dashboard uses the header back button.
+
+## MODIFIED Requirements
+
 ### Requirement: The header is sticky and always visible
 
 The top header SHALL be `position: sticky; top: 0` and SHALL remain visible while the user scrolls. The header MUST contain the product wordmark, the `ThemeToggle`, and (on non-root routes only) a back button. The header SHALL render above the main content in the stacking order.
@@ -36,6 +47,8 @@ A visually hidden skip link MUST be the first focusable element in the document 
 - **WHEN** the user activates the skip link
 - **THEN** the `<main>` element receives focus and the next `Tab` press focuses the first interactive element inside the main content
 
+## ADDED Requirements
+
 ### Requirement: A back button returns to the dashboard from sub-routes
 
 The app shell SHALL render a back control in the header on every route except the dashboard root (`/`). It SHALL be a link whose destination is always `/` (not a history-based `navigate(-1)`), so the destination is deterministic regardless of how the user arrived. It SHALL carry a visible `Back` text label in addition to its icon, and an accessible name of `Back to dashboard`. On `/` the control SHALL NOT be rendered.
@@ -59,4 +72,3 @@ The app shell SHALL render a back control in the header on every route except th
 
 - **WHEN** a screen reader announces the back button
 - **THEN** its accessible name is `Back to dashboard`
-
